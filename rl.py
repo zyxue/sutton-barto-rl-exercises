@@ -45,13 +45,20 @@ class DPAgent(object):
         self.num_states = self.env.get_num_states()
         self.sids = range(self.num_states)
 
+        self.reset()
+
+    def init_V(self):
         # init values for all states
         self.V = np.zeros(self.num_states)
 
-        # init policy randomly at each state
+    def init_pi(self):
+        # init policy at each state, choose the first allowed action
+        f = lambda s: self.env.get_allowed_action_ids(s)[0]
+        self.pi = np.array([f(_) for _ in self.sids])
 
-        self.pi = np.array([
-            np.random.choice(self.env.get_allowed_action_ids(_)) for _ in self.sids])
+    def reset(self):
+        self.init_V()
+        self.init_pi()
 
     def evaluate_policy(self, counter_cutoff=100):
         delta = 1
@@ -86,18 +93,28 @@ class DPAgent(object):
                     policy_stable = False
             counter += 1
 
-    # def value_iteration(self, counter_cutoff):
-    #     delta = 1
-    #     counter = 0
-    #     while delta > 0.1 and counter < counter_cutoff:
-    #         delta = 0
-    #         for sid in self.sids:
-    #             old_v = self.V[sid]
-    #             new_v = 0
-    #             aid = self.pi[sid]
-    #             for (spid, prob) in self.env.get_next_state_distribution(sid, aid):
-    #                 new_v += prob * (self.env.get_reward(sid, aid, spid) + self.gamma * self.V[spid])
-    #             self.V[sid] = new_v
-    #             delta = max(delta, abs(old_v - new_v))
-    #         counter += 1
-        
+    def policy_iteration(self, num_iter=1):
+        """num_iter: number of iterations"""
+        for i in range(num_iter):
+            self.evaluate_policy()
+            self.update_policy()
+
+    def value_iteration(self, counter_cutoff=100):
+        delta = 1
+        counter = 0
+        while delta > 0.1 and counter < counter_cutoff:
+            delta = 0
+            for sid in self.sids:
+                old_v = self.V[sid]
+                action_vals = []
+                for aid in self.env.get_allowed_action_ids(sid):
+                    val = 0
+                    for (spid, prob) in self.env.get_next_state_distribution(sid, aid):
+                        val += prob * (self.env.get_reward(sid, aid, spid) + self.gamma * self.V[spid])
+                    action_vals.append((aid, val))
+                best_aid, best_val = max(action_vals, key=lambda x: x[1])
+                self.pi[sid] = best_aid
+                self.V[sid] = best_val
+                delta = max(delta, abs(old_v - best_val))
+            counter += 1
+        print('converges after {0} sweeps'.format(counter))
