@@ -1,4 +1,6 @@
 """
+Example 4.2: Jack’s Car Rental
+
 MDP description: http://web.engr.oregonstate.edu/~tgd/classes/539-old/programs/program1.html
 
 * state: `(n0, n1)`, at the END of the day
