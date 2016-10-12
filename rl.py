@@ -100,7 +100,7 @@ class DPAgent(object):
             self.evaluate_policy()
             self.update_policy()
 
-    def value_iteration(self, counter_cutoff=100, delta_cutoff=1-3):
+    def value_iteration(self, counter_cutoff=100, delta_cutoff=1-3, verbose=False):
         delta = 1
         counter = 0
         deltas = []
@@ -127,6 +127,6 @@ class DPAgent(object):
                 delta = max(delta, abs(old_v - best_val))
             counter += 1
             deltas.append(delta)
-        if delta < delta_cutoff:
+        if verbose and delta < delta_cutoff:
             print('converges after {0} sweeps. Delta: {1}'.format(counter, delta))
         return deltas
