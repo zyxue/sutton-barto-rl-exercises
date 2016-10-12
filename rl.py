@@ -70,7 +70,8 @@ class DPAgent(object):
             
     def update_policy(self, counter_cutoff=100):
         counter = 0
-        while True:
+        policy_stable = False
+        while not policy_stable and counter < counter_cutoff:
             policy_stable = True
             for sid in self.sids:
                 action_vals = []
@@ -84,5 +85,19 @@ class DPAgent(object):
                     self.pi[sid] = best_aid
                     policy_stable = False
             counter += 1
-            if policy_stable or counter > counter_cutoff:
-                break
+
+    # def value_iteration(self, counter_cutoff):
+    #     delta = 1
+    #     counter = 0
+    #     while delta > 0.1 and counter < counter_cutoff:
+    #         delta = 0
+    #         for sid in self.sids:
+    #             old_v = self.V[sid]
+    #             new_v = 0
+    #             aid = self.pi[sid]
+    #             for (spid, prob) in self.env.get_next_state_distribution(sid, aid):
+    #                 new_v += prob * (self.env.get_reward(sid, aid, spid) + self.gamma * self.V[spid])
+    #             self.V[sid] = new_v
+    #             delta = max(delta, abs(old_v - new_v))
+    #         counter += 1
+        
