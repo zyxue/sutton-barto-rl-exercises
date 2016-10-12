@@ -56,7 +56,7 @@ class DPAgent(object):
     def evaluate_policy(self, counter_cutoff=100):
         delta = 1
         counter = 0
-        while delta > 0.1:
+        while delta > 0.1 and counter < counter_cutoff:
             delta = 0
             for sid in self.sids:
                 old_v = self.V[sid]
@@ -67,8 +67,6 @@ class DPAgent(object):
                 self.V[sid] = new_v
                 delta = max(delta, abs(old_v - new_v))
             counter += 1
-            if counter == counter_cutoff:
-                break
             
     def update_policy(self, counter_cutoff=100):
         counter = 0
