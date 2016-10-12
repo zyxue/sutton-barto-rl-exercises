@@ -130,6 +130,8 @@ class DPAgent(object):
             deltas.append(delta)
             counter += 1
             if counter_cutoff is not None and counter == counter_cutoff:
+                if verbose:
+                    print('not converged, stopped after {0} sweeps'.format(counter))
                 break
 
         if verbose and delta < delta_cutoff:
