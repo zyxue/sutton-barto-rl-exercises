@@ -47,9 +47,24 @@ for k in env.db['probs']:
 assert env.db['rewards'][(1, 0)][2] == env.db['rewards'][(2, 2)][1]
 assert env.db['probs'][(1, 0)][2] == env.db['probs'][(2, 2)][1]
 
-agent= DPAgent(env)
-for i in range(5):
-    agent.evaluate_policy()
-    agent.update_policy()
 
-assert agent.pi.tolist() == [1, 1, 1, 1]
+agent= DPAgent(env)
+
+# before training
+assert (agent.V == 0).all()
+assert agent.pi.tolist() == [1, 0, 1, 0]
+
+# after training via policy_iteration
+for i in range(5): agent.policy_iteration(num_iter=5)
+assert (agent.V == 0).all() == False
+assert (agent.pi == 1).all()
+
+# after reset
+agent.reset()
+assert (agent.V == 0).all()
+assert agent.pi.tolist() == [1, 0, 1, 0]
+
+# after training via value_iteration
+agent.value_iteration()
+assert (agent.V == 0).all() == False
+assert (agent.pi == 1).all()
