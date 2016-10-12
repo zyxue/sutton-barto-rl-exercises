@@ -100,11 +100,11 @@ class DPAgent(object):
             self.evaluate_policy()
             self.update_policy()
 
-    def value_iteration(self, counter_cutoff=100, delta_cutoff=1-3, verbose=False):
+    def value_iteration(self, delta_cutoff=1e-3, counter_cutoff=None, verbose=False):
         delta = 1
         counter = 0
         deltas = []
-        while delta > delta_cutoff and counter < counter_cutoff:
+        while delta > delta_cutoff:
             delta = 0
             for sid in self.sids:
                 old_v = self.V[sid]
@@ -127,8 +127,11 @@ class DPAgent(object):
                 self.pi[sid] = best_aid
                 self.V[sid] = best_val
                 delta = max(delta, abs(old_v - best_val))
-            counter += 1
             deltas.append(delta)
+            counter += 1
+            if counter_cutoff is not None and counter == counter_cutoff:
+                break
+
         if verbose and delta < delta_cutoff:
             print('converges after {0} sweeps. Delta: {1}'.format(counter, delta))
         return deltas
