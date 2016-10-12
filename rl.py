@@ -120,7 +120,9 @@ class DPAgent(object):
 
                 # there can be multiple best actions
                 idxes = np.argwhere(vals == np.max(vals)).ravel()
-                idx = np.random.choice(idxes)
+                idx = np.min(idxes)
+                # idx = np.max(idxes)
+                # idx = np.random.choice(idxes)
                 best_aid, best_val = acts[idx], vals[idx]
                 self.pi[sid] = best_aid
                 self.V[sid] = best_val
