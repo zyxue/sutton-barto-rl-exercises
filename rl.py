@@ -6,19 +6,26 @@ from collections import defaultdict
 
 
 class Environment(object):
+    """Abstract class defined with required methods, which are used to interact
+    with agent"""
+
     def get_num_states(self):
         pass
 
-    def get_max_num_actions(self):
+    def get_allowed_actions(self, state_id):
+        """
+        state_id: an id uniquely identified a state for this environment, the
+        exact form of object for representing the state doesn't matter
+        """
         pass
 
-    def allowed_actions(self, state):
+    def get_next_state_distribution(state_id, action_id):
+        """
+        action_id: similar to state_id, uniquely identifies an action, returns a
+        object like a list of (spid, prob) tuples"""
         pass
 
-    def next_state_distribution(state, action):
-        pass
-
-    def reward(self, state, action, next_state):
+    def get_reward(self, state_id, action_id, next_state_id):
         pass
 
     
