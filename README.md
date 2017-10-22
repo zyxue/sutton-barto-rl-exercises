@@ -13,4 +13,4 @@ Pull requests and bug report are welcome.
 
 Note: if you find the formatting some notebooks (esp. with many equations)
 doesn't look good on github,, try visualize them on
-http://nbviewer.jupyter.org/.
+http://nbviewer.jupyter.org/github/zyxue/sutton-barto-rl-exercises/tree/master/.
