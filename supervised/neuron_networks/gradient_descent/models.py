@@ -20,12 +20,13 @@ class BaseModel(object):
     def __repr__(self):
         return f'{self.__class__.__name__}(w={self.w1}, b={self.w2}, learning_rate={self.learning_rate}, n_epochs={self.n_epochs}'
 
-    def fit(self, xs, ys, method):
-        dd = {
-            'bgd': self.batch_gradient_descent,
-            'sgd': self.stochastic_gradient_descent,
-        }
-        dd[method](xs, ys)
+    def fit(self, xs, ys, method, **kw):
+        if method == 'bgd':
+            self.batch_gradient_descent(xs, ys)
+        elif method == 'sgd':
+            self.stochastic_gradient_descent(xs, ys)
+        elif method == 'momentum':
+            self.momentum(xs, ys)
 
     def batch_gradient_descent(self, xs, ys):
         self.init_history(xs, ys)
@@ -40,6 +41,23 @@ class BaseModel(object):
                 x = np.array([x])
                 y = np.array([y])
                 self.update_params(x, y)
+                self.update_history(x, y)
+
+    def momentum(self, xs, ys, gamma=0.9):
+        self.init_history(xs, ys)
+
+        nu_prev1, nu_prev2 = 0, 0
+        for i in tqdm(range(self.n_epochs)):
+            for x, y in zip(xs, ys):
+                x = np.array([x])
+                y = np.array([y])
+
+                dw1, dw2 = self.derivative(x, y)
+                nu_curr1 = gamma * nu_prev1 + self.learning_rate * dw1
+                nu_curr2 = gamma * nu_prev2 + self.learning_rate * dw2
+                self.w1 -= nu_curr1
+                self.w2 -= nu_curr2
+
                 self.update_history(x, y)
 
     def init_history(self, xs, ys):
