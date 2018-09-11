@@ -17,45 +17,50 @@ class BaseModel(object):
         return f'{self.__class__.__name__}(w={self.w}, learning_rate={self.learning_rate}, n_epochs={self.n_epochs}'
 
     def fit(self, xs, ys, method, **kw):
+        self.init_history(xs, ys)
+        self.update_history(xs, ys)
+
         if method == 'bgd':
             self.batch_gradient_descent(xs, ys)
         elif method == 'sgd':
             self.stochastic_gradient_descent(xs, ys)
         elif method == 'momentum':
             self.momentum(xs, ys)
+        elif method == 'nesterov':
+            self.momentum(xs, ys, nesterov=True)
+        else:
+            raise NotImplementedError(method)
+
+        self.history['w'] = np.array(self.history['w'])
 
     def batch_gradient_descent(self, xs, ys):
-        self.init_history(xs, ys)
         for i in tqdm(range(self.n_epochs)):
             self.update_params(xs, ys)
             self.update_history(xs, ys)
 
     def stochastic_gradient_descent(self, xs, ys):
-        self.init_history(xs, ys)
         for i in tqdm(range(self.n_epochs)):
-            for x, y in zip(xs, ys):
-                x = np.array([x])
-                y = np.array([y])
-                self.update_params(x, y)
-                self.update_history(x, y)
+            for _x, _y in zip(xs, ys):
+                _x = np.array([_x])
+                _y = np.array([_y])
+                self.update_params(_x, _y)
+                self.update_history(xs, ys)
 
-    def momentum(self, xs, ys, gamma=0.9):
-        self.init_history(xs, ys)
-
+    def momentum(self, xs, ys, gamma=0.9, nesterov=False):
         v_prev = np.zeros(self.w.shape)
         for i in tqdm(range(self.n_epochs)):
-            for x, y in zip(xs, ys):
-                x = np.array([x])
-                y = np.array([y])
+            for _x, _y in zip(xs, ys):
+                _x = np.array([_x])
+                _y = np.array([_y])
 
-                dw = self.derivative(x, y)
+                if nesterov:
+                    dw = self.derivative_nesterov(_x, _y, gamma, v_prev)
+                else:
+                    dw = self.derivative(_x, _y)
                 v_curr = gamma * v_prev + self.learning_rate * dw
-                self.w -= v_curr
-
-                self.update_history(x, y)
-
-    def nesterov(self, xs, ys, gamma=0.9):
-        pass
+                self.w = self.w - v_curr  # don't do -=, leads to bug
+                v_prev = v_curr
+                self.update_history(xs, ys)
 
     def init_history(self, xs, ys):
         self.history = {
@@ -99,14 +104,13 @@ class QuadraticModel(BaseModel):
 
     def derivative(self, xs, ys):
         p = self.predict(xs) - ys  # the common part
-        m = p.shape
+        m = p.shape[0]
         dw = np.dot(p, xs ** 2) / m
         return dw
 
     def derivative_nesterov(self, xs, ys, gamma, v_prev):
-        w1 = self.w1 - v_pe
-
-        p = self.predict(xs) - ys  # the common part
-        dw1 = np.mean(p * xs[:, 0] ** 2)  # omit a factor of 2, a constant
-        dw2 = np.mean(p * xs[:, 1] ** 2)  # omit a factor of 2, a constant
-        return dw1, dw2
+        w = self.w - gamma * v_prev
+        p = np.dot(xs ** 2, w) - ys
+        m = p.shape[0]
+        dw = np.dot(p, xs ** 2) / m
+        return dw
