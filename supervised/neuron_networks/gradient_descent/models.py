@@ -34,6 +34,8 @@ class BaseModel(object):
             self.adadelta(xs, ys)
         elif method == 'rmsprop':
             self.rmsprop(xs, ys)
+        elif method == 'adam':
+            self.adam(xs, ys)
         else:
             raise NotImplementedError(method)
 
@@ -145,6 +147,32 @@ class BaseModel(object):
                 G_prev = G
                 self.update_history(xs, ys)
 
+    def adam(self, xs, ys, beta1=0.9, beta2=0.999, epsilon=1e-8):
+        m_prev = np.zeros(self.w.shape)
+        v_prev = np.zeros(self.w.shape)
+        step = 0
+        for i in tqdm(range(self.n_epochs)):
+            for _x, _y in zip(xs, ys):
+                step += 1
+
+                _x = np.array([_x])
+                _y = np.array([_y])
+
+                dw = self.derivative(_x, _y)  # g_{t,i} as in Ruder, 2017
+                m_curr = beta1 * m_prev + (1 - beta1) * dw
+                v_curr = beta2 * v_prev + (1 - beta2) * dw ** 2
+
+                # bias correction
+                m_corr = m_curr / (1 - beta1 ** step)
+                v_corr = v_curr / (1 - beta2 ** step)
+
+                delta_w = self.learning_rate / (np.sqrt(v_corr) + epsilon) * m_corr
+
+                self.w = self.w - delta_w
+
+                m_prev = m_curr
+                v_prev = v_curr
+                self.update_history(xs, ys)
 
     def init_history(self, xs, ys):
         self.history = {
