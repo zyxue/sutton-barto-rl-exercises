@@ -28,6 +28,8 @@ class BaseModel(object):
             self.momentum(xs, ys)
         elif method == 'nesterov':
             self.momentum(xs, ys, nesterov=True)
+        elif method == 'adagrad':
+            self.adagrad(xs, ys)
         else:
             raise NotImplementedError(method)
 
@@ -60,6 +62,21 @@ class BaseModel(object):
                 v_curr = gamma * v_prev + self.learning_rate * dw
                 self.w = self.w - v_curr  # don't do -=, leads to bug
                 v_prev = v_curr
+                self.update_history(xs, ys)
+
+    def adagrad(self, xs, ys, epsilon=1e-8):
+        G = np.zeros((self.w.shape[0], self.w.shape[0]))
+        E = np.eye(self.w.shape[0]) * epsilon
+
+        for i in tqdm(range(self.n_epochs)):
+            for _x, _y in zip(xs, ys):
+                _x = np.array([_x])
+                _y = np.array([_y])
+
+                dw = self.derivative(_x, _y)  # g_{t,i} as in Ruder, 2017
+                G += np.diag(dw) ** 2
+                dw = np.dot(np.linalg.inv(np.sqrt(G + E)), dw)
+                self.w = self.w - self.learning_rate * dw
                 self.update_history(xs, ys)
 
     def init_history(self, xs, ys):
