@@ -32,6 +32,8 @@ class BaseModel(object):
             self.adagrad(xs, ys)
         elif method == 'adadelta':
             self.adadelta(xs, ys)
+        elif method == 'rmsprop':
+            self.rmsprop(xs, ys)
         else:
             raise NotImplementedError(method)
 
@@ -116,6 +118,33 @@ class BaseModel(object):
                 W_prev = W
                 self.update_history(xs, ys)
                 self.history_eta.append(eta.diagonal())
+
+    def rmsprop(self, xs, ys, gamma=0.9, epsilon=1e-8):
+        """
+        Very similar to adadelta without the W part, thus needs an explicit
+        learning rate
+        """
+        E = np.eye(self.w.shape[0]) * epsilon
+        G_prev = np.diag(np.zeros(self.w.shape[0]))
+
+        for i in tqdm(range(self.n_epochs)):
+            for _x, _y in zip(xs, ys):
+                _x = np.array([_x])
+                _y = np.array([_y])
+
+                dw = self.derivative(_x, _y)  # g_{t,i} as in Ruder, 2017
+                G = gamma * G_prev + (1 - gamma) * np.diag(dw) ** 2
+
+                rms_G = np.sqrt(G + E)
+                # adaptive learning rate
+                eta = self.learning_rate * np.linalg.inv(rms_G)
+                delta_w = np.dot(eta, dw)
+
+                self.w = self.w - delta_w
+
+                G_prev = G
+                self.update_history(xs, ys)
+
 
     def init_history(self, xs, ys):
         self.history = {
