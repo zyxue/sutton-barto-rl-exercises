@@ -30,6 +30,8 @@ class BaseModel(object):
             self.momentum(xs, ys, nesterov=True)
         elif method == 'adagrad':
             self.adagrad(xs, ys)
+        elif method == 'adadelta':
+            self.adadelta(xs, ys)
         else:
             raise NotImplementedError(method)
 
@@ -65,7 +67,7 @@ class BaseModel(object):
                 self.update_history(xs, ys)
 
     def adagrad(self, xs, ys, epsilon=1e-8):
-        G = np.zeros((self.w.shape[0], self.w.shape[0]))
+        G_prev = np.zeros((self.w.shape[0], self.w.shape[0]))
         E = np.eye(self.w.shape[0]) * epsilon
 
         for i in tqdm(range(self.n_epochs)):
@@ -74,10 +76,46 @@ class BaseModel(object):
                 _y = np.array([_y])
 
                 dw = self.derivative(_x, _y)  # g_{t,i} as in Ruder, 2017
-                G += np.diag(dw) ** 2
+                G = G_prev + np.diag(dw) ** 2
                 dw = np.dot(np.linalg.inv(np.sqrt(G + E)), dw)
                 self.w = self.w - self.learning_rate * dw
+                G_prev = G
+
                 self.update_history(xs, ys)
+
+    def adadelta(self, xs, ys, gamma=0.9, epsilon=1e-8):
+        """
+        an extension of adagard to solving the forever-decreasing-learning-rate
+        problem, this algorithm doesn't need a learning_rate
+        """
+        E = np.eye(self.w.shape[0]) * epsilon
+        G_prev = np.diag(np.zeros(self.w.shape[0]))
+        delta_w = self.w        # as an approximation
+        W_prev = np.diag(self.w ** 2)
+
+        self.history_eta = []
+        for i in tqdm(range(self.n_epochs)):
+            for _x, _y in zip(xs, ys):
+                _x = np.array([_x])
+                _y = np.array([_y])
+
+                dw = self.derivative(_x, _y)  # g_{t,i} as in Ruder, 2017
+                G = gamma * G_prev + (1 - gamma) * np.diag(dw) ** 2
+
+                rms_W_prev = np.sqrt(W_prev + E)
+                rms_G = np.sqrt(G + E)
+                # adaptive learning rate
+                eta = np.dot(rms_W_prev, np.linalg.inv(rms_G))
+                delta_w = np.dot(eta, dw)
+
+                self.w = self.w - delta_w
+
+                W = gamma * W_prev + (1 - gamma) * np.diag(delta_w) ** 2
+
+                G_prev = G
+                W_prev = W
+                self.update_history(xs, ys)
+                self.history_eta.append(eta.diagonal())
 
     def init_history(self, xs, ys):
         self.history = {
