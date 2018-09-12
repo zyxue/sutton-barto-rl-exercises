@@ -38,6 +38,8 @@ class BaseModel(object):
             self.adam(xs, ys)
         elif method == 'adamax':
             self.adamax(xs, ys)
+        elif method == "nadam":
+            self.nadam(xs, ys)
         else:
             raise NotImplementedError(method)
 
@@ -178,6 +180,31 @@ class BaseModel(object):
 
     def adamax(self, xs, ys, beta1=0.9, beta2=0.999, epsilon=1e-8):
         m_prev = np.zeros(self.w.shape)
+        u_prev = np.zeros(self.w.shape)
+        step = 0
+        for i in tqdm(range(self.n_epochs)):
+            for _x, _y in zip(xs, ys):
+                step += 1
+
+                _x = np.array([_x])
+                _y = np.array([_y])
+
+                dw = self.derivative(_x, _y)  # g_{t,i} as in Ruder, 2017
+                m_curr = beta1 * m_prev + (1 - beta1) * dw
+                u_curr = np.max([beta2 * u_prev, np.abs(dw)], axis=0)  # Eq. 25
+
+                m_corr = m_curr / (1 - beta1 ** step)
+
+                delta_w = self.learning_rate / u_curr * m_corr
+
+                self.w = self.w - delta_w
+
+                m_prev = m_curr
+                u_prev = u_curr
+                self.update_history(xs, ys)
+
+    def nadam(self, xs, ys, beta1=0.9, beta2=0.999, epsilon=1e-8):
+        m_prev = np.zeros(self.w.shape)
         v_prev = np.zeros(self.w.shape)
         step = 0
         for i in tqdm(range(self.n_epochs)):
@@ -191,11 +218,13 @@ class BaseModel(object):
                 m_curr = beta1 * m_prev + (1 - beta1) * dw
                 v_curr = beta2 * v_prev + (1 - beta2) * dw ** 2
 
-                u_curr = np.max([beta2 * v_prev, np.abs(dw)], axis=0)
-
+                # bias correction
                 m_corr = m_curr / (1 - beta1 ** step)
+                v_corr = v_curr / (1 - beta2 ** step)
 
-                delta_w = self.learning_rate / u_curr * m_corr
+                # Eq. 33
+                factor =  beta1 * m_corr + (1 - beta1) / (1 - beta1 ** step) * dw
+                delta_w = self.learning_rate / (np.sqrt(v_corr) + epsilon) * factor
 
                 self.w = self.w - delta_w
 
