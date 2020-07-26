@@ -4,7 +4,7 @@ def naive_tree_shap(tree, current_node, features):
     """
     current_feature_index = tree.feature[current_node]
     if current_feature_index == -2:  # a leaf node
-        return tree.value[current_node]
+        return tree.value[current_node][0][0]
 
     if current_feature_index in features:
         current_feature_val = features[current_feature_index]
