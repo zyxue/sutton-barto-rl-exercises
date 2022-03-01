@@ -5,4 +5,6 @@ get_ipython().run_cell_magic(
 )
 
 import altair as alt
+import matplotlib.pyplot as plt
 import numpy as np
+import scipy.stats
