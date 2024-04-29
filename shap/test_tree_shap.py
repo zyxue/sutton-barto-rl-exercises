@@ -37,7 +37,7 @@ def toy_tree():
     )
 
     tree.fit(X=X_train, y=y_train)
-    return data, tree.tree_
+    return data, tree
 
 
 # assert tree_shap.naive_tree_shap(tree.tree_, current_node=0, idx=0, val=150)[0][0] == 20
