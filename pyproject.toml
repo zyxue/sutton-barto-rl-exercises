@@ -4,4 +4,10 @@ version = "0.1.0"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "altair>=5.5.0",
+    "jupyter>=1.1.1",
+    "matplotlib>=3.10.1",
+    "numpy>=2.2.5",
+    "pandas>=2.2.3",
+    "scipy>=1.15.2",
 ]
