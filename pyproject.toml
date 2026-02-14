@@ -1,13 +1,14 @@
 [project]
-name = "zhuyi-ml-stats-notes"
+name = "sutton-barto-rl-exercises"
 version = "0.1.0"
+description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "altair>=5.5.0",
+    "altair>=6.0.0",
     "jupyter>=1.1.1",
-    "matplotlib>=3.10.1",
-    "numpy>=2.2.5",
-    "pandas>=2.2.3",
-    "scipy>=1.15.2",
+    "matplotlib>=3.10.8",
+    "numpy>=2.4.2",
+    "pandas>=3.0.0",
+    "scipy>=1.17.0",
 ]
