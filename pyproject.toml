@@ -11,5 +11,6 @@ dependencies = [
     "numpy>=2.4.2",
     "pandas>=3.0.0",
     "scipy>=1.17.0",
+    "smalldiffusion>=0.4.4",
     "torch>=2.10.0",
 ]
