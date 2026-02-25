@@ -6,7 +6,10 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "altair>=6.0.0",
+    "black>=26.1.0",
+    "isort>=8.0.0",
     "jupyter>=1.1.1",
+    "jupyterlab-code-formatter>=3.0.3",
     "matplotlib>=3.10.8",
     "numpy>=2.4.2",
     "pandas>=3.0.0",
